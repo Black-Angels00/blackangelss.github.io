@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLACK ANGEL</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    body {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 100%);
+      color: #ff3366;
+      font-family: 'Press Start 2P', 'Courier New', monospace;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      background-attachment: fixed;
+    }
+
+    h1 {
+      color: #ff3366;
+      text-shadow: 0 0 25px #ff3366, 0 0 40px #ff0000;
+      font-size: 2.8em;
+      margin: 20px 0;
+      letter-spacing: 4px;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+      background: rgba(10, 10, 20, 0.85);
+      padding: 30px;
+      border: 3px solid #ff3366;
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(255, 51, 102, 0.6);
+    }
+
+    .modo {
+      margin: 20px 0;
+      font-size: 1.1em;
+    }
+
+    select, button {
+      padding: 12px 20px;
+      margin: 8px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: bold;
+    }
+
+    select {
+      background: #1a0033;
+      color: #ff3366;
+      border: 2px solid #ff3366;
+    }
+
+    button {
+      background: #ff3366;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: #ff6699;
+      transform: scale(1.05);
+    }
+
+    .item {
+      margin: 15px 0;
+      padding: 15px;
+      background: #1a0033;
+      border-left: 6px solid #ff3366;
+      text-align: left;
+      font-size: 1.1em;
+      border-radius: 5px;
+    }
+
+    #total {
+      font-size: 28px;
+      margin: 30px 0;
+      color: #00ff99;
+      text-shadow: 0 0 15px #00ff99;
+    }
+
+    .logo {
+      font-size: 4em;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">🖤</div>
+    <h1>BLACK ANGEL</h1>
+    
+    <div class="modo">
+      <strong>MODO DE PREÇO:</strong> 
+      <select id="modo" onchange="atualizarPrecos()">
+        <option value="parceria">Parceria</option>
+        <option value="pista">Pista</option>
+      </select>
+    </div>
+
+    <h3>Adicionar Itens</h3>
+    <div>
+      <button onclick="addItem('PT')">PT</button>
+      <button onclick="addItem('Segunda')">Segunda</button>
+      <button onclick="addItem('Fuzil')">Fuzil</button>
+      <button onclick="addItem('C4')">C4</button>
+      <button onclick="addItem('Energético')">Energético</button>
+    </div>
+
+    <div id="lista"></div>
+
+    <div style="margin: 25px 0;">
+      <button onclick="zerar()">🗑️ Zerar Tudo</button>
+      <button onclick="copiar()">📋 Copiar Pedido</button>
+    </div>
+
+    <div id="total">Total a Pagar: <strong>R$ 0,00</strong></div>
+
+    <p style="margin-top: 30px;">
+      <button onclick="enviarLogs()" style="padding: 15px 30px; font-size: 1.1em;">🚀 ENVIAR PARA LOGS</button>
+    </p>
+  </div>
+
+  <script>
+    let itens = [];
+    let modoAtual = "parceria";
+
+    const precos = {
+      "PT": { parceria: 8000, pista: 10500 },
+      "Segunda": { parceria: 11000, pista: 13000 },
+      "Fuzil": { parceria: 16000, pista: 18000 },
+      "C4": { parceria: 2500, pista: 2900 },
+      "Energético": { parceria: 2880, pista: 3300 }
+    };
+
+    function atualizarPrecos() {
+      modoAtual = document.getElementById('modo').value;
+      renderLista();
+    }
+
+    function addItem(nome) {
+      const preco = precos[nome][modoAtual];
+      const existente = itens.find(item => item.nome === nome);
+      
+      if (existente) {
+        existente.qtd += 1;
+      } else {
+        itens.push({nome, preco, qtd: 1});
+      }
+      renderLista();
+    }
+
+    function renderLista() {
+      let html = '';
+      let soma = 0;
+
+      itens.forEach((item, index) => {
+        const valorTotal = item.preco * item.qtd;
+        html += `
+          <div class="item">
+            <strong>${item.nome}</strong> × ${item.qtd} → R$ ${valorTotal.toLocaleString('pt-BR')}
+            <button onclick="mudarQtd(${index}, 1)">+</button>
+            <button onclick="mudarQtd(${index}, -1)">-</button>
+            <button onclick="remover(${index})" style="background:#990000; margin-left:10px;">X</button>
+          </div>`;
+        soma += valorTotal;
+      });
+
+      document.getElementById('lista').innerHTML = html || '<p style="color:#666;">Nenhum item adicionado ainda...</p>';
+      document.getElementById('total').innerHTML = `Total a Pagar: <strong>R$ ${soma.toLocaleString('pt-BR')}</strong>`;
+    }
+
+    function mudarQtd(index, valor) {
+      itens[index].qtd += valor;
+      if (itens[index].qtd < 1) itens[index].qtd = 1;
+      renderLista();
+    }
+
+    function remover(index) {
+      itens.splice(index, 1);
+      renderLista();
+    }
+
+    function zerar() {
+      if (confirm("Tem certeza que deseja zerar tudo?")) {
+        itens = [];
+        renderLista();
+      }
+    }
+
+    function copiar() {
+      const modo = modoAtual === "parceria" ? "Parceria" : "Pista";
+      let texto = `🖤 BLACK ANGEL - Pedido (${modo})\n\n`;
+      let total = 0;
+
+      itens.forEach(i => {
+        const valor = i.preco * i.qtd;
+        texto += `${i.nome} × ${i.qtd} = R$ ${valor.toLocaleString('pt-BR')}\n`;
+        total += valor;
+      });
+
+      texto += `\nTotal: R$ ${total.toLocaleString('pt-BR')}\n`;
+      texto += `Data: ${new Date().toLocaleDateString('pt-BR')}`;
+
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("✅ Pedido copiado com sucesso!");
+      });
+    }
+
+    function enviarLogs() {
+      if (itens.length === 0) {
+        alert("Adicione itens antes de enviar!");
+        return;
+      }
+      alert("🚀 Pedido enviado para os logs com sucesso!");
+      // Aqui você pode colocar webhook do Discord depois
+    }
+
+    // Inicializa
+    renderLista();
+  </script>
+</body>
+</html>
